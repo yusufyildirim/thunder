@@ -16,5 +16,8 @@
   "license": "MIT",
   "devDependencies": {
     "bs-platform": "^7.0.1"
+  },
+  "dependencies": {
+    "fastify": "^2.11.0"
   }
 }
