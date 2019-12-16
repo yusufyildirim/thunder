@@ -1,5 +1,5 @@
 # ⚡ Thunder ⚡
-A web framework on top of Fastify.
+A web framework on top of [Fastify](https://github.com/fastify/fastify) that heavily inspired by [Opium](https://github.com/rgrinberg/opium).
 
 ## Design Goals
 
@@ -15,13 +15,13 @@ More examples will be available in the `/examples` folder.
 
 ``` reason
 module App = Thunder.Make({
-    let port = 3000;
+  let port = 3000;
 });
 
 open App;
 
 get("/", (_request) => {
-    { code: 200, body: Js.Json.string("Hello World") }
+  String("Thunder API up and running!") |> respond;
 })
 
 App.listen();

@@ -1,43 +1,9 @@
-type httpCodes = int;
-module Request = {
-  type t = {
-    body: Js.Json.t,
-    query: Js.Json.t,
-    params: Js.Json.t,
-    headers: Js.Json.t,
-    ip: string,
-    hostname: string,
-  };
-
-  let make = (~body, ~query, ~params, ~headers, ~ip, ~hostname) => {
-    body,
-    query,
-    params,
-    headers,
-    ip,
-    hostname,
-  }
-};
-
-module Response = {
-  type body = Js.Json.t;
-  type t = {
-    code: httpCodes,
-    body,
-  };
-
-  let make = (~code = 200, ~body = Js.Json.string(""), ()) => {
-    code,
-    body,
-  };
-
-  let setCode = (r: t, code) => {...r, code };
-  let setBody = (r: t, body) => {...r, body };
-};
-
-module Handler = {
-  type t = Request.t => Response.t;
-};
+module Code = Thunder_Code;
+module Body = Thunder_Body;
+module Header = Thunder_Header;
+module Request = Thunder_Request;
+module Response = Thunder_Response;
+module Handler = Thunder_Handler;
 
 module type config = {
   let port: int;
@@ -53,7 +19,7 @@ module Make = (CONF: config) => {
     app |> Fastify.listen(port);
   }
 
-  let handler = (cb: Handler.t, request: Fastify.request, response: Fastify.response) => {
+  let _toFastifyHandler = (cb: Handler.t, request: Fastify.request, response: Fastify.response) => {
     let r = Request.make(
     ~body = request.body,
     ~query = request.query,
@@ -65,9 +31,44 @@ module Make = (CONF: config) => {
 
     let result = cb(r);
 
-    response |> Fastify.sendJson(result.body);
+    let code = result.code -> Code.codeOfStatus;
+    response |> Fastify.setCode(code);
+    response |> Fastify.setHeaders(result.headers);
+
+    switch result.body {
+    | `Json(json) => response |> Fastify.sendJson(json)
+    | `Xml(str)
+    | `String(str) => response |> Fastify.sendString(str)
+    }
   }
 
-  let get = (route: string, cb: Handler.t) => app |> Fastify.get(route, handler(cb));
-  let post = (route: string, cb: Handler.t) => app |> Fastify.post(route, handler(cb));
+  let registerHandler = (~meth: Code.methods, ~route: string, ~handler: Handler.t) => {
+    let meth = Code.stringOfMeth(meth);
+    let handler = _toFastifyHandler(handler);
+
+    app |> Fastify.route({ meth, route, handler });
+  }
+
+  let get = (route: string, handler: Handler.t) => registerHandler(~meth = `GET, ~route, ~handler);
+  let post = (route: string, handler: Handler.t) => registerHandler(~meth = `POST, ~route, ~handler);
+  let head = (route: string, handler: Handler.t) => registerHandler(~meth = `HEAD, ~route, ~handler);
+  let delete = (route: string, handler: Handler.t) => registerHandler(~meth = `DELETE, ~route, ~handler);
+  let patch = (route: string, handler: Handler.t) => registerHandler(~meth = `PATCH, ~route, ~handler);
+  let put = (route: string, handler: Handler.t) => registerHandler(~meth = `PUT, ~route, ~handler);
+  let options = (route: string, handler: Handler.t) => registerHandler(~meth = `OPTIONS, ~route, ~handler);
+
+  // Response Helpers
+  let respond = (~code: Code.statusCode = `OK, ~headers: option(Header.t) = ?, body: Body.t) => {
+    let headers = 
+      switch body {
+      | `Json(_) => Header.setOpt(headers, "Content-Type", "application/json")
+      | `String(_) => Header.setOpt(headers, "Content-Type", "text/plain")
+      | `Xml(_) => Header.setOpt(headers, "Content-Type", "application/xml")
+      };
+
+    Response.make(~code, ~headers, ~body);
+  }
+
+// Request Helpers
+  let param = Request.param;
 }
