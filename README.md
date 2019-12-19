@@ -1,5 +1,5 @@
 # ⚡ Thunder ⚡
-A web framework on top of [Fastify](https://github.com/fastify/fastify) that heavily inspired by [Opium](https://github.com/rgrinberg/opium).
+A web framework on top of [Fastify](https://github.com/fastify/fastify) that heavily inspired by [Opium](https://github.com/rgrinberg/opium) and [Nest](https://github.com/nestjs/nest) .
 
 ## Design Goals
 

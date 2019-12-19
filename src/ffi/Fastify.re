@@ -31,7 +31,7 @@ let createServerOptions = (
 
 type route = {
   [@bs.as "method"] meth: string,
-  [@bs.as "url"] route: string,
+  [@bs.as "url"] path: string,
   handler: handler,
 };
 
@@ -52,3 +52,26 @@ type pluginDone = unit => unit;
 type plugin = (instance, pluginOptions, pluginDone) => unit;
 
 [@bs.send.pipe: instance] external register: plugin => unit = "register";
+
+let makeHandler = (cb: Thunder_Handler.t, request: request, response: response) => {
+    let r = Thunder_Request.make(
+    ~body = request.body,
+    ~query = request.query,
+    ~params = request.params,
+    ~headers = request.headers,
+    ~ip = request.ip,
+    ~hostname = request.hostname
+    );
+
+    let result = cb(r);
+
+    let code = result.code -> Thunder_Code.codeOfStatus;
+    response |> setCode(code);
+    response |> setHeaders(result.headers);
+
+    switch result.body {
+    | `Json(json) => response |> sendJson(json)
+    | `Xml(str)
+    | `String(str) => response |> sendString(str)
+    }
+  }

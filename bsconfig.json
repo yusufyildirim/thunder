@@ -16,9 +16,8 @@
     "module": "commonjs"
   },
   "suffix": ".bs.js",
-  "bs-dependencies": [
-
-  ],
+  "bs-dependencies": ["decco"],
+  "ppx-flags": [ "decco/ppx" ],
   "warnings": {
     "error" : "+101"
   },
