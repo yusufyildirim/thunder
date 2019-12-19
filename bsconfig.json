@@ -1,5 +1,5 @@
 {
-  "name": "Thunder",
+  "name": "@ttinythings/thunder",
   "version": "0.1.0",
   "sources": [
     {
@@ -8,7 +8,8 @@
     },
     {
       "dir" : "examples",
-      "subdirs" : true
+      "subdirs" : true,
+      "type": "dev"
     }
   ],
   "package-specs": {
@@ -21,6 +22,6 @@
   "warnings": {
     "error" : "+101"
   },
-  "namespace": true,
+  "namespace": false,
   "refmt": 3
 }
