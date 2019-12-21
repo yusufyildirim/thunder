@@ -7,5 +7,6 @@
 
 module.exports = {
   docs: {
+    "Getting Started": ['what-and-why'],
   },
 };
